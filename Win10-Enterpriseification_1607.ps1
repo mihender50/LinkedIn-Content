@@ -3,10 +3,7 @@
     This script creates a localhost.mof file which when applied assist in the Enterpriseification [ˈen(t)ərˌprīz-fə-ˈkā-shən] of the Windows 10 Enterprise SKU by removing built-in apps as well as consumer apps settings.
     The localhost.mof will need to be applied via DSC.
 
-   
-
-
- 
+    
 .DESCRIPTION
     Builds DSC Document to assist in the Enterpriseification of the Windows 10 Enterprise SKU by removing built-in apps as well as consumer apps settings.
     Built and validated on Win10 1607 ONLY.
@@ -29,7 +26,6 @@
     Created:     9-13-2017
     Updated:     
     Version:     1.0.0
-
 
 
 Resources:
@@ -85,9 +81,16 @@ $WindowsCapList.GetType()
 
 #$WindowsCapList = " "
 
-ForEach ($Capability in $WindowsCapabilityList){$CapabilityName = Get-WindowsCapability -online | Where-Object -property Name -like $Capability | format-table -hidetableheaders Name | Out-string#if ($CapabilityName.length -ne '0') {write-host $CapabilityName.Trim();write-Verbose "Item in the Windows Capability detected; removing next..."; write-Host "$Capability detected; removing now..."; Return $False 
+ForEach ($Capability in $WindowsCapabilityList)
+{
+$CapabilityName = Get-WindowsCapability -online | Where-Object -property Name -like $Capability | format-table -hidetableheaders Name | Out-string
+#if ($CapabilityName.length -ne '0') {write-host $CapabilityName.Trim();write-Verbose "Item in the Windows Capability detected; removing next..."; write-Host "$Capability detected; removing now..."; Return $False 
+
 $CapabilityName = $CapabilityName.Trim()
-$WindowsCapList.Add("$CapabilityName")}
+
+$WindowsCapList.Add("$CapabilityName")
+}
+
 if ($WindowsCapList.Length -ne "0") { write-verbose "Windows Capabiltiy detected, removing now..."; write-Host "Windows Capability detected, removing now..."
     $WindowsCapList = $WindowsCapList | format-table | Out-string
     $WindowsCapList = $WindowsCapList.Trim()
@@ -122,7 +125,8 @@ $WindowsCapabilityList =    "App.Support.ContactSupport*",
 
 ForEach ($Capability in $WindowsCapabilityList)
 {
-$CapabilityName = Get-WindowsCapability -online | Where-Object -property Name -like $Capability | format-table -hidetableheaders Name | Out-string$CapabilityName  = $CapabilityName.Trim()
+$CapabilityName = Get-WindowsCapability -online | Where-Object -property Name -like $Capability | format-table -hidetableheaders Name | Out-string
+$CapabilityName  = $CapabilityName.Trim()
 
 write-host $CapabilityName
 if ($CapabilityName)
@@ -194,7 +198,24 @@ $ProPacklist.GetType()
 $ProPacklistValue = " "
 $PacklistValue = " "
 
-ForEach ($App in $AppList){$PackageFullName = (Get-AppxPackage -AllUsers | Where-Object -property Name -eq $App) | format-table -hidetableheaders PackageFullName | Out-string$PackageFullName = $PackageFullName.Trim()$ProPackageFullName = (Get-AppxProvisionedPackage -online | Where-Object -property displayname -eq $App)| format-table -hidetableheaders packagename | Out-string$ProPackageFullName = $ProPackageFullName.Trim()if ($PackageFullName.Length -ne "0") {write-host $PackageFullName$Packlist.Add("$PackageFullName")}if ($ProPackageFullName.Length -ne "0") {write-host $ProPackageFullName$ProPackList.Add("$ProPackageFullName")}}
+ForEach ($App in $AppList)
+{
+$PackageFullName = (Get-AppxPackage -AllUsers | Where-Object -property Name -eq $App) | format-table -hidetableheaders PackageFullName | Out-string
+$PackageFullName = $PackageFullName.Trim()
+$ProPackageFullName = (Get-AppxProvisionedPackage -online | Where-Object -property displayname -eq $App)| format-table -hidetableheaders packagename | Out-string
+$ProPackageFullName = $ProPackageFullName.Trim()
+if ($PackageFullName.Length -ne "0") {
+write-host $PackageFullName
+
+$Packlist.Add("$PackageFullName")
+}
+if ($ProPackageFullName.Length -ne "0") {
+write-host $ProPackageFullName
+
+$ProPackList.Add("$ProPackageFullName")
+
+}
+}
 $Packlist = $Packlist | format-table | Out-string
 $Packlist = $Packlist.Trim()
 $ProPackList = $ProPackList | format-table | Out-string
@@ -223,7 +244,10 @@ Else {
 
 SetScript = {
 Write-Verbose "Remove Specified AppxPackages and AppxProvisionedPackages"
-#Remove appxpackages and appxprovisionedpackages#use Get-AppxPackage or Get-AppxPackage *officehub* to get the name of other packages.$AppList =  "Microsoft.3DBuilder",                  
+#Remove appxpackages and appxprovisionedpackages
+#use Get-AppxPackage or Get-AppxPackage *officehub* to get the name of other packages.
+
+$AppList =  "Microsoft.3DBuilder",                  
             "Microsoft.BingWeather",                 
             "Microsoft.DesktopAppInstaller",       
             "Microsoft.Getstarted",                  
@@ -262,7 +286,8 @@ Write-Verbose "Remove Specified AppxPackages and AppxProvisionedPackages"
  
 ForEach ($App in $AppList)
 {
-$PackageFullName = (Get-AppxPackage -AllUsers | Where-Object -property Name -eq $App) | format-table -hidetableheaders PackageFullName | Out-string$PackageFullName = $PackageFullName.Trim()
+$PackageFullName = (Get-AppxPackage -AllUsers | Where-Object -property Name -eq $App) | format-table -hidetableheaders PackageFullName | Out-string
+$PackageFullName = $PackageFullName.Trim()
 $ProPackageFullName = (Get-AppxProvisionedPackage -online | Where-Object -property displayname -eq $App)| format-table -hidetableheaders packagename | Out-string
 $ProPackageFullName = $ProPackageFullName.Trim()
 write-host $PackageFullName
