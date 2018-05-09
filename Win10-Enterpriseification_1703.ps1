@@ -25,7 +25,7 @@
 .NOTES
     FileName:    Win10-Enterpriseification_1703.ps1
     Author:      Michael A. Henderson
-    Contact:     mihend--------------
+    Contact:     www.linkedin.com/in/michael-henderson-6003398
     Created:     9-13-2017
     Updated:     
     Version:     1.0.0
