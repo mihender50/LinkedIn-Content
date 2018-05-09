@@ -140,7 +140,7 @@ Else {
 
 SetScript = {
 $DateTime = Get-Date -format g
-$logpath = "C:\admincfg\UninstallWindowsCapabilities.log"
+#$logpath = "C:\admincfg\UninstallWindowsCapabilities.log"
 $logpathappx = "C:\admincfg\UninstallAppXPackages.log"
 
 $WindowsCapabilityList =    "App.Support.QuickAssist*"   
@@ -169,7 +169,7 @@ $DateTime = Get-Date -format g
 Write-Host "Removing Package: $Capability"
 "$DateTime Removing Package: $Capability" |out-file $logpathappx -append
  
-remove-windowscapability -Online -name "$DateTime $CapabilityName" -LogPath $logpath
+remove-windowscapability -Online -name "$CapabilityName" -LogPath C:\admincfg\UninstallWindowsCapabilities.log
 
 }
 else
