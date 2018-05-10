@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     This script creates a localhost.mof file which when applied assist in the Enterpriseification [ˈen(t)ərˌprīz-fə-ˈkā-shən] of the Windows 10 Enterprise SKU by removing built-in apps as well as consumer apps settings.
     The localhost.mof will need to be applied via DSC.
@@ -9,7 +9,7 @@
  
 .DESCRIPTION
     Builds DSC Document to assist in the Enterpriseification of the Windows 10 Enterprise SKU by removing built-in apps as well as consumer apps settings.
-    Built and validated on Win10 1709 ONLY.
+    Built and validated on Win10 1803 ONLY.
  
 .EXAMPLE
     .\Win10-Enterpriseification_1709.ps1
@@ -20,13 +20,13 @@
 .NOTES
  
     Version history:
-    1.0.0 - (5-9-2018) Script created
+    1.0.0 - (5-10-2018) Script created
  
 .NOTES
-    FileName:    Win10-Enterpriseification_1709.ps1
+    FileName:    Win10-Enterpriseification_1803.ps1
     Author:      Michael A. Henderson
     Contact:     www.linkedin.com/in/michael-henderson-6003398
-    Created:     5-9-2018
+    Created:     5-10-2018
     Updated:     
     Version:     1.0.0
 
@@ -44,7 +44,7 @@ cmd.exe /c powershell.exe -executionpolicy bypass Copy-Item -Path C:\AdminCFG\lo
 
 #>
 
-Configuration Enterpriseification1709 {
+Configuration Enterpriseification1803 {
     Import-DscResource –ModuleName PSDesiredStateConfiguration
     #Import-DscResource –ModuleName xPSDesiredStateConfiguration
     Node localhost {
@@ -64,6 +64,8 @@ Registry CFG-HKLM:DisableConsumerExperiences {
 
         ValueType = "DWORD" }
 
+#https://winaero.com/blog/ms-settings-commands-windows-10/
+#New in 1709 gaming-trueplay;gaming-xboxnetworking
 #Hide Gaming Settings
 Registry CFG-HideGaming {
 
@@ -75,7 +77,7 @@ Registry CFG-HideGaming {
 
         ValueName = "SettingsPageVisibility"
 
-        ValueData = "Hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode"
+        ValueData = "Hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-trueplay;gaming-xboxnetworking"
 
         ValueType = "String" }
 
@@ -87,7 +89,7 @@ Script RemoveWindowsCapabilities {
 TestScript = {
 
 # (Get-WindowsCapability -online | Where-Object {$_.name -ne $Null -and $_.state -eq "Installed"})| format-table -hidetableheaders Name | Out-string
-#Updated for 1803
+
 $WindowsCapabilityList =    "App.Support.QuickAssist*"   
                             #"Browser.InternetExplorer*", 
                             #"Language.Basic~~~en-US~0.0.1.0",       
@@ -97,8 +99,7 @@ $WindowsCapabilityList =    "App.Support.QuickAssist*"
                             #"Language.TextToSpeech~~~en-US~0.0.1.0",
                             #"Language.UI.Client~~~en-US~",          
                             #"Media.WindowsMediaPlayer~~~~0.0.12.0", 
-                            #"OneCoreUAP.OneSync~~~~0.0.1.0"
-                            #OpenSSH.Client~~~~0.0.1.0 
+                            #"OneCoreUAP.OneSync~~~~0.0.1.0" 
 
 
 $WindowsCapList = {$array2}.Invoke()
@@ -153,8 +154,7 @@ $WindowsCapabilityList =    "App.Support.QuickAssist*"
                             #"Language.TextToSpeech~~~en-US~0.0.1.0",
                             #"Language.UI.Client~~~en-US~",          
                             #"Media.WindowsMediaPlayer~~~~0.0.12.0", 
-                            #"OneCoreUAP.OneSync~~~~0.0.1.0"
-                            #OpenSSH.Client~~~~0.0.1.0              
+                            #"OneCoreUAP.OneSync~~~~0.0.1.0"               
 
 
 
@@ -171,7 +171,7 @@ $DateTime = Get-Date -format g
 Write-Host "Removing Package: $Capability"
 "$DateTime Removing Package: $Capability" |out-file $logpathappx -append
  
-remove-windowscapability -Online -name "$CapabilityName" -LogPath "C:\admincfg\UninstallWindowsCapabilities.log"
+remove-windowscapability -Online -name "$CapabilityName" -LogPath C:\admincfg\UninstallWindowsCapabilities.log
 
 }
 else
@@ -189,43 +189,44 @@ Script RemoveBuiltInApps {
 
 
 TestScript = {
-# 1803 AppXProvisionedPackage List
+# 1709 AppXProvisionedPackage List
 #(Get-AppxPackage | Where-Object -property Name -like *) | format-table -hidetableheaders Name | Out-string
 #(Get-AppxProvisionedPackage -online | Where-Object -property displayname -like *)| format-table -hidetableheaders DisplayName | Out-string
 # Commended out AppxProvisioned packages which you may want to keep
-$AppList =     #"Microsoft.BingWeather",
+$AppList =     #"Microsoft.BingWeather",                 
                 "Microsoft.DesktopAppInstaller",
-                "Microsoft.GetHelp",
-                "Microsoft.Getstarted",
-                "Microsoft.Messaging", 
-                "Microsoft.Microsoft3DViewer",
-                "Microsoft.MicrosoftOfficeHub",
+                "Microsoft.GetHelp",                     
+                "Microsoft.Getstarted",                  
+                "Microsoft.Messaging",                   
+                "Microsoft.Microsoft3DViewer",           
+                "Microsoft.MicrosoftOfficeHub",          
                 "Microsoft.MicrosoftSolitaireCollection",
-               #"Microsoft.MicrosoftStickyNotes",
-               #"Microsoft.MSPaint",
-               #"Microsoft.Office.OneNote",
-                "Microsoft.OneConnect",
-                "Microsoft.People",
-               #"Microsoft.Print3D",
-                "Microsoft.SkypeApp",
-                "Microsoft.StorePurchaseApp",
-                "Microsoft.Wallet",
-               #"Microsoft.Windows.Photos",
-               #"Microsoft.WindowsAlarms",
-               #"Microsoft.WindowsCalculator",
-               #"Microsoft.WindowsCamera",
-                "microsoft.windowscommunicationsapps",
-                "Microsoft.WindowsFeedbackHub",
-               #"Microsoft.WindowsMaps",
-               #"Microsoft.WindowsSoundRecorder",
-               #"Microsoft.WindowsStore",
-                "Microsoft.Xbox.TCUI",
-                "Microsoft.XboxApp",
-                "Microsoft.XboxGameOverlay",
-                "Microsoft.XboxIdentityProvider",
-                "Microsoft.XboxSpeechToTextOverlay",
-                "Microsoft.ZuneMusic",
+               #"Microsoft.MicrosoftStickyNotes",        
+               #"Microsoft.MSPaint",                     
+               #"Microsoft.Office.OneNote",              
+                "Microsoft.OneConnect",                  
+                "Microsoft.People",                      
+               #"Microsoft.Print3D",                     
+                "Microsoft.SkypeApp",                    
+                "Microsoft.StorePurchaseApp",            
+                "Microsoft.Wallet",                      
+               #"Microsoft.Windows.Photos",              
+               #"Microsoft.WindowsAlarms",               
+               #"Microsoft.WindowsCalculator",           
+               #"Microsoft.WindowsCamera",               
+                "microsoft.windowscommunicationsapps",   
+                "Microsoft.WindowsFeedbackHub",          
+               #"Microsoft.WindowsMaps",                 
+               #"Microsoft.WindowsSoundRecorder",        
+               #"Microsoft.WindowsStore",                
+                "Microsoft.Xbox.TCUI",                   
+                "Microsoft.XboxApp",                     
+                "Microsoft.XboxGameOverlay",             
+                "Microsoft.XboxIdentityProvider",        
+                "Microsoft.XboxSpeechToTextOverlay",     
+                "Microsoft.ZuneMusic",                   
                 "Microsoft.ZuneVideo",
+                "Microsoft.FreshPaint",
                 #AppXpackages
                 #"Microsoft.Windows.CloudExperienceHost",          <--Unable to Remove
                 #"Microsoft.Windows.ContentDeliveryManager",       <--Unable to Remove
@@ -236,7 +237,6 @@ $AppList =     #"Microsoft.BingWeather",
                 #"Microsoft.Services.Store.Engagement",            <--Unable to Remove
                 #"Microsoft.Advertising.Xaml",                     <--Unable to Remove
                 #"Microsoft.Advertising.Xaml",                     <--Unable to Remove
-                #"Windows.CBSPreview",                             <--Unable to Remove
                 "Microsoft.BingNews",
                 "46928bounde.EclipseManager",
                 "ActiproSoftwareLLC.562882FEEB491",
@@ -247,7 +247,7 @@ $AppList =     #"Microsoft.BingWeather",
                 "D5EA27B7.Duolingo-LearnLanguagesforFree",
                 "Microsoft.RemoteDesktop"
                 #"Microsoft.Windows.SecHealthUI",                  <--Unable to Remove
-                #"InputApp"                                        <--Unable to Remove                                       <--Unable to Remove            
+                #"InputApp"                                        <--Unable to Remove             
 
 $PackList = {$array}.Invoke()
 $Packlist
@@ -315,39 +315,40 @@ $logpathappXpro = "C:\admincfg\UninstallAppxProvpackages.log"
 # 1709 AppXProvisionedPackage List
 # Commended out AppxProvisioned packages which you may want to keep
 
-$AppList =     #"Microsoft.BingWeather",
+$AppList =     #"Microsoft.BingWeather",                 
                 "Microsoft.DesktopAppInstaller",
-                "Microsoft.GetHelp",
-                "Microsoft.Getstarted",
-                "Microsoft.Messaging", 
-                "Microsoft.Microsoft3DViewer",
-                "Microsoft.MicrosoftOfficeHub",
+                "Microsoft.GetHelp",                     
+                "Microsoft.Getstarted",                  
+                "Microsoft.Messaging",                   
+                "Microsoft.Microsoft3DViewer",           
+                "Microsoft.MicrosoftOfficeHub",          
                 "Microsoft.MicrosoftSolitaireCollection",
-               #"Microsoft.MicrosoftStickyNotes",
-               #"Microsoft.MSPaint",
-               #"Microsoft.Office.OneNote",
-                "Microsoft.OneConnect",
-                "Microsoft.People",
-               #"Microsoft.Print3D",
-                "Microsoft.SkypeApp",
-                "Microsoft.StorePurchaseApp",
-                "Microsoft.Wallet",
-               #"Microsoft.Windows.Photos",
-               #"Microsoft.WindowsAlarms",
-               #"Microsoft.WindowsCalculator",
-               #"Microsoft.WindowsCamera",
-                "microsoft.windowscommunicationsapps",
-                "Microsoft.WindowsFeedbackHub",
-               #"Microsoft.WindowsMaps",
-               #"Microsoft.WindowsSoundRecorder",
-               #"Microsoft.WindowsStore",
-                "Microsoft.Xbox.TCUI",
-                "Microsoft.XboxApp",
-                "Microsoft.XboxGameOverlay",
-                "Microsoft.XboxIdentityProvider",
-                "Microsoft.XboxSpeechToTextOverlay",
-                "Microsoft.ZuneMusic",
+               #"Microsoft.MicrosoftStickyNotes",        
+               #"Microsoft.MSPaint",                     
+               #"Microsoft.Office.OneNote",              
+                "Microsoft.OneConnect",                  
+                "Microsoft.People",                      
+               #"Microsoft.Print3D",                     
+                "Microsoft.SkypeApp",                    
+                "Microsoft.StorePurchaseApp",            
+                "Microsoft.Wallet",                      
+               #"Microsoft.Windows.Photos",              
+               #"Microsoft.WindowsAlarms",               
+               #"Microsoft.WindowsCalculator",           
+               #"Microsoft.WindowsCamera",               
+                "microsoft.windowscommunicationsapps",   
+                "Microsoft.WindowsFeedbackHub",          
+               #"Microsoft.WindowsMaps",                 
+               #"Microsoft.WindowsSoundRecorder",        
+               #"Microsoft.WindowsStore",                
+                "Microsoft.Xbox.TCUI",                   
+                "Microsoft.XboxApp",                     
+                "Microsoft.XboxGameOverlay",             
+                "Microsoft.XboxIdentityProvider",        
+                "Microsoft.XboxSpeechToTextOverlay",     
+                "Microsoft.ZuneMusic",                   
                 "Microsoft.ZuneVideo",
+                "Microsoft.FreshPaint",
                 #AppXpackages
                 #"Microsoft.Windows.CloudExperienceHost",          <--Unable to Remove
                 #"Microsoft.Windows.ContentDeliveryManager",       <--Unable to Remove
@@ -358,7 +359,6 @@ $AppList =     #"Microsoft.BingWeather",
                 #"Microsoft.Services.Store.Engagement",            <--Unable to Remove
                 #"Microsoft.Advertising.Xaml",                     <--Unable to Remove
                 #"Microsoft.Advertising.Xaml",                     <--Unable to Remove
-                #"Windows.CBSPreview",                             <--Unable to Remove
                 "Microsoft.BingNews",
                 "46928bounde.EclipseManager",
                 "ActiproSoftwareLLC.562882FEEB491",
@@ -390,7 +390,7 @@ Write-Host "Removing Package: $PackageFullName"
 
 Try {
 # 1607 & 1703 Doesnt support -Allusers 
-remove-AppxPackage -AllUsers -package $PackageFullName.Trim()
+remove-AppxPackage -package $PackageFullName -AllUsers
 #(Get-AppxPackage -AllUsers | Where-Object -property Name -eq $PackageFullName.Trim()) | remove-AppxPackage -AllUsers
 } catch {"Unable to find $PackageFullName"}
 }
@@ -408,7 +408,7 @@ $DateTime = Get-Date -format g
 Write-Host "Removing Provisioned Package: $ProPackageFullName"
 "$DateTime Removing Provisioned Package: $ProPackageFullName" | out-file $logpathappxpro -append
 Try {
-Remove-AppxProvisionedPackage -online -packagename $ProPackageFullName.Trim()
+Remove-AppxProvisionedPackage -online -packagename $ProPackageFullName
 } catch {"Unable to find $ProPackageFullName"}
 }
 else
@@ -423,4 +423,4 @@ Write-Host "Unable to find provisioned package: $App"
 
 #End of block
 }}
-Enterpriseification1709 -output C:\AdminCfg
+Enterpriseification1803 -output C:\AdminCfg
