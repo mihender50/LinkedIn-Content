@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     This script creates a localhost.mof file which when applied assist in the Enterpriseification [ˈen(t)ərˌprīz-fə-ˈkā-shən] of the Windows 10 Enterprise SKU by removing built-in apps as well as consumer apps settings.
     The localhost.mof will need to be applied via DSC.
@@ -64,6 +64,8 @@ Registry CFG-HKLM:DisableConsumerExperiences {
 
         ValueType = "DWORD" }
 
+#https://winaero.com/blog/ms-settings-commands-windows-10/
+#New in 1709 gaming-trueplay;gaming-xboxnetworking
 #Hide Gaming Settings
 Registry CFG-HideGaming {
 
@@ -75,7 +77,7 @@ Registry CFG-HideGaming {
 
         ValueName = "SettingsPageVisibility"
 
-        ValueData = "Hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode"
+        ValueData = "Hide:gaming-gamebar;gaming-gamedvr;gaming-broadcasting;gaming-gamemode;gaming-trueplay;gaming-xboxnetworking"
 
         ValueType = "String" }
 
@@ -168,7 +170,7 @@ if ($CapabilityName)
 $DateTime = Get-Date -format g
 Write-Host "Removing Package: $Capability"
 "$DateTime Removing Package: $Capability" |out-file $logpathappx -append
- 
+ 
 remove-windowscapability -Online -name "$CapabilityName" -LogPath C:\admincfg\UninstallWindowsCapabilities.log
 
 }
@@ -224,6 +226,7 @@ $AppList =     #"Microsoft.BingWeather",
                 "Microsoft.XboxSpeechToTextOverlay",     
                 "Microsoft.ZuneMusic",                   
                 "Microsoft.ZuneVideo",
+                "Microsoft.FreshPaint",
                 #AppXpackages
                 #"Microsoft.Windows.CloudExperienceHost",          <--Unable to Remove
                 #"Microsoft.Windows.ContentDeliveryManager",       <--Unable to Remove
@@ -345,6 +348,7 @@ $AppList =     #"Microsoft.BingWeather",
                 "Microsoft.XboxSpeechToTextOverlay",     
                 "Microsoft.ZuneMusic",                   
                 "Microsoft.ZuneVideo",
+                "Microsoft.FreshPaint",
                 #AppXpackages
                 #"Microsoft.Windows.CloudExperienceHost",          <--Unable to Remove
                 #"Microsoft.Windows.ContentDeliveryManager",       <--Unable to Remove
@@ -366,8 +370,8 @@ $AppList =     #"Microsoft.BingWeather",
                 "Microsoft.RemoteDesktop"
                 #"Microsoft.Windows.SecHealthUI",                  <--Unable to Remove
                 #"InputApp"                                        <--Unable to Remove
-        
- 
+        
+ 
 ForEach ($App in $AppList)
 {
 $PackageFullName = (Get-AppxPackage -AllUsers | Where-Object -property Name -eq $App) | format-table -hidetableheaders PackageFullName | Out-string
@@ -385,8 +389,8 @@ Write-Host "Removing Package: $PackageFullName"
 "$DateTime Removing Package: $PackageFullName" |out-file $logpathappx -append
 
 Try {
-# 1607 & 1703 Doesnt support -Allusers 
-remove-AppxPackage -AllUsers -package $PackageFullName.Trim()
+# 1607 & 1703 Doesnt support -Allusers 
+remove-AppxPackage -package $PackageFullName -AllUsers
 #(Get-AppxPackage -AllUsers | Where-Object -property Name -eq $PackageFullName.Trim()) | remove-AppxPackage -AllUsers
 } catch {"Unable to find $PackageFullName"}
 }
@@ -404,14 +408,14 @@ $DateTime = Get-Date -format g
 Write-Host "Removing Provisioned Package: $ProPackageFullName"
 "$DateTime Removing Provisioned Package: $ProPackageFullName" | out-file $logpathappxpro -append
 Try {
-Remove-AppxProvisionedPackage -online -packagename $ProPackageFullName.Trim()
+Remove-AppxProvisionedPackage -online -packagename $ProPackageFullName
 } catch {"Unable to find $ProPackageFullName"}
 }
 else
 {
 $DateTime = Get-Date -format g
 Write-Host "Unable to find provisioned package: $App" 
- "$DateTime Unable to find provisioned package: $App" | out-file $logpathappxpro -append
+ "$DateTime Unable to find provisioned package: $App" | out-file $logpathappxpro -append
 }
 }
 }
